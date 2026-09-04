@@ -29,31 +29,32 @@ func isResolution(eventValue string) bool{
     return parsedInt == 0
 }
 
-func getPriorityInMessageBySeverity(severity_level string) string {
-        if (severity_level == "High"){
-            return "High 🟧"
-		} else if (severity_level == "Average"){
-            return "Average 🟦"
-		} else if (severity_level == "Disaster") {
-            return "Disaster 🟥"
-		} else {
-            return "Minor ⬜"
-		}
+func getPriorityInMessageBySeverity(severityLevel string) string {
+    switch severityLevel {
+	case "High":
+		return "High 🟧"
+	case "Average":
+		return "Average 🟦"
+	case "Disaster":
+		return "Disaster 🟥"
+	default:
+		return "Minor ⬜"
+	}
 }
 
 func main() {
 	if len(os.Args) < 11 {
-		log.Fatal("Usage: tg_notify <language: ru/en> <event_duration> <event_severity> <event_age> <event_value> <httpproxy> <message> <resolve_duration_min> <subject> <to> <token>") // <parsemode>
+		log.Fatal("Usage: tg_notify <language: ru/en> <event_duration> <event_severity> <event_age> <event_value> <httpproxy> <message> <resolve_duration_sec> <subject> <to> <token>") // <parsemode>
 	}
 
 	lang := os.Args[1]
-	event_duration := os.Args[2]
-	event_severity := os.Args[3]
-	event_age := os.Args[4]
-	event_value := os.Args[5]
-	httpproxy := os.Args[6]
+	eventDuration := os.Args[2]
+	eventSeverity := os.Args[3]
+	eventAge := os.Args[4]
+	eventValue := os.Args[5]
+	httpProxy := os.Args[6]
 	message := os.Args[7]
-	resolve_duration_min := os.Args[8]
+	resolveDurationSec := os.Args[8]
 	subject := os.Args[9]
 	to := os.Args[10]
 	token := os.Args[11]
@@ -77,7 +78,7 @@ func main() {
 		log.Fatalf("Bot initialization error: %v", err)
 	}
 
-	if httpProxy := httpproxy; httpProxy != "" {
+	if httpProxy := httpProxy; httpProxy != "" {
 		proxyURL, err := url.Parse(httpProxy)
 		if err != nil {
 			log.Fatalf("Error parsing proxy URL: %v", err)
@@ -108,20 +109,20 @@ func main() {
 	*/
 
 	// MODIFYING MESSAGE
-	modified_text := strings.Replace(text,CurrentLang[Severity]+":",CurrentLang[Severity] + ": " + getPriorityInMessageBySeverity(event_severity),1)
+	modified_text := strings.Replace(text,CurrentLang[Severity]+":",CurrentLang[Severity] + ": " + getPriorityInMessageBySeverity(eventSeverity),1)
 
 	if (strings.Contains(modified_text, strings.ToUpper(CurrentLang[Problem]))){
         modified_text = "🚨 " + modified_text;
-    } else if (strings.Contains(modified_text,strings.ToUpper(CurrentLang[Problem]))) {
+    } else if (strings.Contains(modified_text,strings.ToUpper(CurrentLang[Resolved]))) {
         modified_text = "✅ " + modified_text
-    } else if (strings.Contains(modified_text,strings.ToUpper(CurrentLang[Problem]))) {
+    } else if (strings.Contains(modified_text,strings.ToUpper(CurrentLang[Updated]))) {
         modified_text = "🔄 " + modified_text;
     }
 
-    // РЕШЕНИЕ - при решении события
-    if (isResolution(event_value)) {
-        if (event_age < resolve_duration_minutes) {
-            log.Fatalf("Event duration(%s) is less than DELAY (%sm)", event_duration, resolve_duration_min)
+    // in case of RESOLVED
+    if (isResolution(eventValue)) {
+        if (eventAge < resolveDurationSec) {
+            log.Fatalf("Event duration(%s) is less than DELAY (%sm)", eventDuration, resolveDurationSec)
         }
 	}
 
