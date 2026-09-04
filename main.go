@@ -109,14 +109,15 @@ func main() {
 	*/
 
 	// MODIFYING MESSAGE
-	modified_text := strings.Replace(text,CurrentLang[Severity]+":",CurrentLang[Severity] + ": " + getPriorityInMessageBySeverity(eventSeverity),1)
-
-	if (strings.Contains(modified_text, strings.ToUpper(CurrentLang[Problem]))){
-        modified_text = "🚨 " + modified_text;
-    } else if (strings.Contains(modified_text,strings.ToUpper(CurrentLang[Resolved]))) {
-        modified_text = "✅ " + modified_text
-    } else if (strings.Contains(modified_text,strings.ToUpper(CurrentLang[Updated]))) {
-        modified_text = "🔄 " + modified_text;
+	// add emoji to severity
+	modifiedText := strings.Replace(text,CurrentLang[Severity]+":",CurrentLang[Severity] + ": " + getPriorityInMessageBySeverity(eventSeverity),1)
+	// add emoji to illustarte event state
+	if (strings.Contains(modifiedText, strings.ToUpper(CurrentLang[Problem]))){
+        modifiedText = "🚨 " + modifiedText;
+    } else if (strings.Contains(modifiedText,strings.ToUpper(CurrentLang[Resolved]))) {
+        modifiedText = "✅ " + modifiedText
+    } else if (strings.Contains(modifiedText,strings.ToUpper(CurrentLang[Updated]))) {
+        modifiedText = "🔄 " + modifiedText;
     }
 
     // in case of RESOLVED
@@ -126,7 +127,7 @@ func main() {
         }
 	}
 
-	msg := tgbotapi.NewMessage(chatID, text)
+	msg := tgbotapi.NewMessage(chatID, modifiedText)
 	msg.ParseMode = "HTML"
 
 
