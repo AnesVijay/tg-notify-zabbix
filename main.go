@@ -13,18 +13,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-//function isProblem(params){
-//    return params.Event_value == 1
-//        && params.Event_update_status == 0
-//    ;
-//}
-
-//function isUpdate(params){
-//    return params.Event_value == 1
-//        && params.Event_update_status == 1
-//    ;
-//}
-
 func isResolution(eventValue string) bool{
 	parsedInt, _ := strconv.ParseInt(eventValue, 10, 64)
     return parsedInt == 0
@@ -44,8 +32,8 @@ func getPriorityInMessageBySeverity(severityLevel string) string {
 }
 
 func main() {
-	if len(os.Args) < 13 {
-		log.Fatal("Usage: tg_notify <language: ru/en> <event_duration> <event_severity> <event_timestamp> <event_value> <httpproxy> <message> <resolve_duration_sec> <subject> <to> <token> <proxy_timeout>") // <parsemode>
+	if len(os.Args) < 14 {
+		log.Fatal("Usage: tg_notify <language: ru/en> <event_duration> <event_severity> <event_timestamp> <event_value> <httpproxy> <message> <resolve_duration_sec> <subject> <to> <token> <proxy_timeout> <event_recovery_timestamp>")
 	}
 
 	lang := os.Args[1]
@@ -60,11 +48,11 @@ func main() {
 	to := os.Args[10]
 	token := os.Args[11]
 	proxyTimeout := os.Args[12]
+	eventRecoveryTimestampInp := os.Args[13]
 
 	var botClient *http.Client
 	var bot *tgbotapi.BotAPI
 	
-//	parsemode := os.Args[11]
 	if lang == "en" || lang == "ru" {
 		SetLang(lang)
 	}
@@ -120,7 +108,7 @@ func main() {
 		}
 	}
 
-	eventTimestamp, err := strconv.ParseInt(eventTimestampInp, 11, 64)
+	eventTimestamp, err := strconv.ParseInt(eventTimestampInp, 10, 64)
 	if err != nil {
 		log.Fatalf("Error parsing event_timestamp (after severity): %v", err)
 	}
@@ -128,10 +116,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error parsing resolve_duration_sec (after message): %v", err)
 	}
+	eventRecoveryTimestamp, err := strconv.ParseInt(eventRecoveryTimestampInp, 10, 64)
+	if err != nil && eventRecoveryTimestampInp == "{EVENT.RECOVERY.TIMESTAMP}" {
+		eventRecoveryTimestamp = int64(0)	
+	} else if err != nil {
+		log.Fatalf("Error parsing event_recovery_timestamp (after message): %v", err)
+	}
 
 
 	// Format a message into HTML
-	text := fmt.Sprintf("<b>%s</b>\n\n<code>%s</code>", subject, message)
+	text := fmt.Sprintf("<b>%s</b>\n\n%s", subject, message)
 
 	// Optional (or for the future): it is possible to add inline-buttons
 	/*
@@ -156,8 +150,7 @@ func main() {
 
     // in case of RESOLVED check event duration to avoid flapping alerts
     if (isResolution(eventValue)) {
-		eventTime := time.Unix(eventTimestamp, 0)
-		durationSeconds := int64(time.Since(eventTime).Seconds())
+		durationSeconds := eventRecoveryTimestamp - eventTimestamp
         if (durationSeconds < resolveDurationSec) {
             log.Fatalf("Event duration(%s) is less than DELAY (%d seconds)", eventDuration, resolveDurationSec)
         }
