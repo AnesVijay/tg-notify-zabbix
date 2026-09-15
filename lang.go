@@ -10,7 +10,7 @@ const (
 )
 
 var ruLang = map[WordType]string {
-	Severity : "Cерьёзность",
+	Severity : "Серьёзность",
 	Problem : "Проблема",
 	Updated : "Обновление",
 	Resolved : "Решено",
