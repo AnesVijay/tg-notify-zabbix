@@ -123,9 +123,11 @@ func main() {
 		log.Fatalf("Error parsing event_recovery_timestamp (after message): %v", err)
 	}
 
+	// adding emoji to severity
+	modifiedMsg := strings.Replace(message,CurrentLang[Severity]+":",CurrentLang[Severity] + ": " + getPriorityInMessageBySeverity(eventSeverity),1)
 
 	// Format a message into HTML
-	text := fmt.Sprintf("<b>%s</b>\n\n%s", subject, message)
+	modifiedText := fmt.Sprintf("<b>%s</b>\n\n%s", subject, modifiedMsg)
 
 	// Optional (or for the future): it is possible to add inline-buttons
 	/*
@@ -137,8 +139,6 @@ func main() {
 	*/
 
 	// MODIFYING MESSAGE
-	// adding emoji to severity
-	modifiedText := strings.Replace(text,CurrentLang[Severity]+":",CurrentLang[Severity] + ": " + getPriorityInMessageBySeverity(eventSeverity),1)
 	// adding emoji to illustarte event state
 	if (strings.Contains(modifiedText, strings.ToUpper(CurrentLang[Problem]))){
         modifiedText = "🚨 " + modifiedText;
